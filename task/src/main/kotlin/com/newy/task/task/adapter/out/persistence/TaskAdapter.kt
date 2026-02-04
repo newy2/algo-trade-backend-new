@@ -7,11 +7,7 @@ import com.newy.task.task.adapter.out.persistence.jpa.model.TaskJpaEntity
 import com.newy.task.task.adapter.out.persistence.jpa.model.UserJpaEntity
 import com.newy.task.task.domain.CreateTask
 import com.newy.task.task.domain.UpdateTask
-import com.newy.task.task.port.out.CreateTaskOutPort
-import com.newy.task.task.port.out.DeleteTaskOutPort
-import com.newy.task.task.port.out.ExistsTaskOutPort
-import com.newy.task.task.port.out.GetTaskOutPort
-import com.newy.task.task.port.out.UpdateTaskOutPort
+import com.newy.task.task.port.out.*
 import jakarta.persistence.EntityManager
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.stereotype.Component
@@ -43,16 +39,8 @@ class TaskAdapter(
             val task = taskJpaRepository.findWithAssignmentsById(updateTask.taskId)!!
             val updaterRef = em.getReference(UserJpaEntity::class.java, updateTask.updatedBy)
 
-            task.title = updateTask.title!!
-            task.description = updateTask.description
-            task.status = updateTask.status!!
-            task.priority = updateTask.priority
-            task.startAt = updateTask.startAt
-            task.endAt = updateTask.endAt
-            task.updater = updaterRef
-            task.updatedAt = updateTask.updatedAt
-
-            task.assignments.removeIf { it.user.id in updateTask.deletedAssigneeIds }
+            task.update(updateTask, updater = updaterRef)
+            task.removeAssignments(updateTask)
             task.addAssignments(updateTask.addedAssigneeIds.map { assigneeId ->
                 TaskAssignmentJpaEntity(
                     task = task,

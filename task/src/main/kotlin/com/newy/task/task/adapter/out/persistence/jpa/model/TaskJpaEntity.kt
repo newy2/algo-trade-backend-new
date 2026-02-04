@@ -1,10 +1,6 @@
 package com.newy.task.task.adapter.out.persistence.jpa.model
 
-import com.newy.task.task.domain.CreateTask
-import com.newy.task.task.domain.Task
-import com.newy.task.task.domain.TaskAssignee
-import com.newy.task.task.domain.TaskPriority
-import com.newy.task.task.domain.TaskStatus
+import com.newy.task.task.domain.*
 import jakarta.persistence.*
 import java.time.OffsetDateTime
 
@@ -62,8 +58,23 @@ class TaskJpaEntity(
         updatedAt = createTask.updatedAt
     )
 
+    fun update(updateTask: UpdateTask, updater: UserJpaEntity) {
+        this.title = updateTask.title!!
+        this.description = updateTask.description
+        this.status = updateTask.status!!
+        this.priority = updateTask.priority
+        this.startAt = updateTask.startAt
+        this.endAt = updateTask.endAt
+        this.updater = updater
+        this.updatedAt = updateTask.updatedAt
+    }
+
+    fun removeAssignments(updateTask: UpdateTask) {
+        assignments.removeIf { it.user.id in updateTask.deletedAssigneeIds }
+    }
+
     fun addAssignments(newAssignments: List<TaskAssignmentJpaEntity>) {
-        this.assignments.addAll(newAssignments)
+        assignments.addAll(newAssignments)
     }
 
     fun toDomainModel() =
