@@ -1,4 +1,4 @@
-package com.newy.algotrade
+package com.newy.task
 
 import org.springframework.boot.fromApplication
 import org.springframework.boot.with

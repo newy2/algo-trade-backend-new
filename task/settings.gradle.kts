@@ -1,1 +1,1 @@
-rootProject.name = "algo-trade-backend-new"
+rootProject.name = "task"
