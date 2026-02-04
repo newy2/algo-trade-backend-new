@@ -4,8 +4,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class AlgoTradeBackendNewApplication
+class TaskAppApplication
 
 fun main(args: Array<String>) {
-    runApplication<AlgoTradeBackendNewApplication>(*args)
+    runApplication<TaskAppApplication>(*args)
 }

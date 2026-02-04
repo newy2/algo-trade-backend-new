@@ -1,6 +1,6 @@
 package com.newy.task.integration.helper
 
-import com.newy.task.integration.confing.TestcontainersConfiguration
+import com.newy.task.integration.config.TestcontainersConfiguration
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Import
