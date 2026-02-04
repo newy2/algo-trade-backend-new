@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
+    <property name="currentTable" value="task_assignment" global="false"/>
+    <property name="currentTableComment" value="작업 할당자" global="false"/>
+
+    <property name="referenceTable1" value="task" global="false"/>
+    <property name="referenceTable1_Comment" value="작업" global="false"/>
+    <property name="referenceTable2" value="users" global="false"/>
+    <property name="referenceTable2_Comment" value="할당자" global="false"/>
+    <property name="referenceTable2_Id" value="user_id" global="false"/>
+
+    <changeSet id="2026-01-25-001" author="newy">
+        <preConditions onFail="CONTINUE">
+            <tableExists tableName="${referenceTable1}"/>
+            <tableExists tableName="${referenceTable2}"/>
+        </preConditions>
+
+        <createTable tableName="${currentTable}" remarks="${currentTableComment}">
+            <!-- PK, FK -->
+            <column name="${referenceTable1}_id" type="BIGINT" remarks="${referenceTable1_Comment} ID">
+                <constraints
+                        referencedTableName="${referenceTable1}"
+                        referencedColumnNames="id"
+                        foreignKeyName="fk_${currentTable}__${referenceTable1}"
+                        deleteCascade="true"
+                        nullable="false"
+                />
+            </column>
+            <column name="${referenceTable2_Id}" type="BIGINT" remarks="${referenceTable2_Comment} ID">
+                <constraints
+                        referencedTableName="${referenceTable2}"
+                        referencedColumnNames="id"
+                        foreignKeyName="fk_${currentTable}__${referenceTable2}"
+                        deleteCascade="true"
+                        nullable="false"
+                />
+            </column>
+
+            <!-- 생성/변경 일시 -->
+            <column name="created_at" type="${dateTimeType}" defaultValueDate="${defaultDateTimeValue}" remarks="생성일시">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="BIGINT" remarks="생성자 ID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey
+                tableName="${currentTable}"
+                columnNames="task_id,user_id"
+                constraintName="pk_${currentTable}"/>
+    </changeSet>
+
+</databaseChangeLog>

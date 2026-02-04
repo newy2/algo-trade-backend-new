@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
+    <property name="currentTable" value="user_notification_config" global="false"/>
+    <property name="currentTableComment" value="사용자 알림 설정" global="false"/>
+
+    <property name="referenceTable" value="users" global="false"/>
+    <property name="referenceTable_Comment" value="사용자" global="false"/>
+    <property name="referenceTable_Id" value="user_id" global="false"/>
+
+    <changeSet id="2026-01-29-001" author="newy">
+        <preConditions onFail="CONTINUE">
+            <tableExists tableName="${referenceTable}"/>
+        </preConditions>
+
+        <createTable tableName="${currentTable}" remarks="${currentTableComment}">
+            <!-- PK, FK -->
+            <column name="id" type="BIGINT" autoIncrement="true" remarks="${currentTableComment} ID">
+                <constraints primaryKey="true" primaryKeyName="pk_${currentTable}"/>
+            </column>
+            <column name="${referenceTable_Id}" type="BIGINT" remarks="${referenceTable_Comment} ID">
+                <constraints
+                        referencedTableName="${referenceTable}"
+                        referencedColumnNames="id"
+                        foreignKeyName="fk_${currentTable}__${referenceTable}"
+                        deleteCascade="true"
+                        nullable="false"
+                />
+            </column>
+
+            <column name="channel_type" type="VARCHAR(20)" remarks="전송 채널(EMAIL, SLACK, APP 등)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="destination" type="VARCHAR(255)" remarks="수신처(이메일주소 또는 웹훅 URL)"/>
+        </createTable>
+        <addUniqueConstraint
+                tableName="user_notification_config"
+                columnNames="${referenceTable_Id}, channel_type"
+                constraintName="uk_${currentTable}__user_channel_type"
+        />
+    </changeSet>
+</databaseChangeLog>

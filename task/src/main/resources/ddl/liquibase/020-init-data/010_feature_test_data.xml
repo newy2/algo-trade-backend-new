@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
+        context="prod AND use_feature_test_data">
+
+    <!-- ================================================= -->
+    <!-- 공통 : 기능 테스트 데이터 (PK 자동 증가 안전) -->
+    <!-- ================================================= -->
+    <changeSet id="2026-01-25-001"
+               author="newy">
+
+        <sql>
+            -- =========================
+            -- users
+            -- =========================
+            INSERT INTO users (nickname)
+            VALUES ('김철수'),
+                   ('이영희'),
+                   ('박민수'),
+                   ('정수빈'),
+                   ('미스터 박');
+
+            -- =========================
+            -- task
+            -- =========================
+            INSERT INTO task
+                (title, description, status, priority, created_by, updated_by)
+            VALUES ('로그인 기능 구현',
+                    'JWT 기반 로그인',
+                    'DONE',
+                    'HIGH',
+                    (SELECT id FROM users WHERE nickname = '김철수'),
+                    (SELECT id FROM users WHERE nickname = '김철수')),
+                   ('회원가입 API',
+                    '이메일 인증 포함',
+                    'DONE',
+                    'MEDIUM',
+                    (SELECT id FROM users WHERE nickname = '이영희'),
+                    (SELECT id FROM users WHERE nickname = '이영희')),
+                   ('작업 관리',
+                    '작업 CRUD',
+                    'IN_PROGRESS',
+                    'HIGH',
+                    (SELECT id FROM users WHERE nickname = '박민수'),
+                    (SELECT id FROM users WHERE nickname = '박민수')),
+                   ('검색 기능',
+                    '전문 검색',
+                    'WAITING',
+                    'HIGH',
+                    (SELECT id FROM users WHERE nickname = '정수빈'),
+                    (SELECT id FROM users WHERE nickname = '정수빈')),
+                   ('알림 기능',
+                    '이메일 알림',
+                    'WAITING',
+                    'LOW',
+                    (SELECT id FROM users WHERE nickname = '미스터 박'),
+                    (SELECT id FROM users WHERE nickname = '미스터 박'));
+
+            -- =========================
+            -- task_assignment (FK 안전)
+            -- =========================
+            INSERT INTO task_assignment (task_id, user_id, created_by)
+            SELECT t.id,
+                   u.id,
+                   creator.id
+            FROM (SELECT '로그인 기능 구현' AS task_title, '김철수' AS user_name, '김철수' AS creator
+                  UNION ALL
+                  SELECT '로그인 기능 구현', '미스터 박', '김철수'
+                  UNION ALL
+                  SELECT '회원가입 API', '이영희', '이영희'
+                  UNION ALL
+                  SELECT '작업 관리', '박민수', '박민수'
+                  UNION ALL
+                  SELECT '작업 관리', '김철수', '박민수'
+                  UNION ALL
+                  SELECT '검색 기능', '정수빈', '정수빈') x
+                     JOIN task t ON t.title = x.task_title
+                     JOIN users u ON u.nickname = x.user_name
+                     JOIN users creator ON creator.nickname = x.creator;
+        </sql>
+    </changeSet>
+
+    <!-- ================================================= -->
+    <!-- MySQL : Full Text Search 데이터 -->
+    <!-- ================================================= -->
+    <changeSet id="2026-01-25-002"
+               author="newy"
+               dbms="mysql">
+        <sql>
+            INSERT INTO task_full_text_search
+            (task_id, search_content, title_raw, description_raw, assignees_raw, updated_by)
+            SELECT t.id,
+                   CONCAT(
+                           t.title, ' ',
+                           IFNULL(t.description, ''), ' ',
+                           IFNULL(GROUP_CONCAT(u.nickname ORDER BY u.id SEPARATOR ','), '')
+                   )                                                    AS search_content,
+                   t.title,
+                   t.description,
+                   GROUP_CONCAT(u.nickname ORDER BY u.id SEPARATOR ',') AS assignees_raw,
+                   t.updated_by
+            FROM task t
+                     LEFT JOIN task_assignment ta ON ta.task_id = t.id
+                     LEFT JOIN users u ON u.id = ta.user_id
+            GROUP BY t.id, t.title, t.description, t.updated_by;
+        </sql>
+    </changeSet>
+
+    <!-- ================================================= -->
+    <!-- PostgreSQL : Full Text Search 데이터 -->
+    <!-- ================================================= -->
+    <changeSet id="2026-01-25-003"
+               author="newy"
+               dbms="postgresql">
+        <sql>
+            INSERT INTO task_full_text_search
+            (task_id, search_content, title_raw, description_raw, assignees_raw, updated_at, updated_by)
+            SELECT t.id,
+                   to_tsvector(
+                           'simple',
+                           t.title || ' ' ||
+                           COALESCE(t.description, '') || ' ' ||
+                           COALESCE(string_agg(DISTINCT u.nickname, ','), '')
+                   ),
+                   t.title,
+                   t.description,
+                   COALESCE(string_agg(DISTINCT u.nickname, ','), ''),
+                   now(),
+                   t.updated_by
+            FROM task t
+                     LEFT JOIN task_assignment ta ON ta.task_id = t.id
+                     LEFT JOIN users u ON u.id = ta.user_id
+            GROUP BY t.id, t.title, t.description, t.updated_by;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
+        context="prod AND use_performance_test_data">
+
+    <!-- ================================================= -->
+    <!-- PostgreSQL -->
+    <!-- ================================================= -->
+    <changeSet id="2026-01-25-001" author="newy" dbms="postgresql">
+        <sql><![CDATA[
+            -- =================================================
+            -- 1. users (50,000)
+            -- =================================================
+            INSERT INTO users (nickname)
+            SELECT (CASE
+                        WHEN gs % 3 = 0 THEN
+                            (ARRAY [
+                                '김철수','이영희','박민수','최지우',
+                                '정수빈','한유진','윤아라','서준호'
+                                ])[gs % 8 + 1]
+                        ELSE
+                            (ARRAY [
+                                '미스터 박',
+                                '초롱한 박상사',
+                                '행복한 김대리',
+                                '야근하는 이과장',
+                                '커피요정 최주임',
+                                '불꽃 리더 정팀장'
+                                ])[gs % 6 + 1]
+                END) || '_' || gs
+            FROM generate_series(1, 50000) gs;
+
+            -- =================================================
+            -- 2. task (100,000) - FK SAFE
+            -- =================================================
+            INSERT INTO task
+                (title, description, status, priority, created_by, updated_by)
+            SELECT '대용량 작업 ' || gs,
+                   CASE
+                       WHEN gs % 5 = 0 THEN NULL
+                       WHEN gs % 5 = 1 THEN '짧은 설명'
+                       ELSE repeat('이것은 성능 테스트용 긴 설명입니다. ', (gs % 20) + 5)
+                       END,
+                   CASE
+                       WHEN gs % 3 = 0 THEN 'DONE'
+                       WHEN gs % 3 = 1 THEN 'IN_PROGRESS'
+                       ELSE 'WAITING'
+                       END,
+                   CASE
+                       WHEN gs % 2 = 0 THEN 'HIGH'
+                       ELSE 'MEDIUM'
+                       END,
+                   u.id,
+                   u.id
+            FROM generate_series(1, 100000) gs
+                     JOIN LATERAL (
+                SELECT id
+                FROM users
+                ORDER BY id
+                OFFSET (gs % (SELECT COUNT(*) FROM users)) LIMIT 1
+                ) u ON true;
+
+            -- =================================================
+            -- 3. task_assignment (FK SAFE)
+            -- =================================================
+            INSERT INTO task_assignment (task_id, user_id, created_by)
+            SELECT t.id,
+                   u.id,
+                   creator.id
+            FROM task t
+                     JOIN LATERAL (
+                SELECT id
+                FROM users
+                ORDER BY id
+                LIMIT CASE
+                          WHEN t.id % 10 = 0 THEN 0
+                          WHEN t.id % 10 BETWEEN 1 AND 3 THEN 1
+                          WHEN t.id % 10 BETWEEN 4 AND 6 THEN 2
+                          ELSE 5
+                    END
+                ) u ON true
+                     JOIN LATERAL (
+                SELECT id
+                FROM users
+                ORDER BY id
+                OFFSET (t.id % (SELECT COUNT(*) FROM users)) LIMIT 1
+                ) creator ON true;
+
+            -- =================================================
+            -- 4. task_full_text_search
+            -- =================================================
+            INSERT INTO task_full_text_search
+            (task_id, search_content, title_raw, description_raw, assignees_raw, updated_at, updated_by)
+            SELECT t.id,
+                   to_tsvector(
+                           'simple',
+                           t.title || ' ' ||
+                           COALESCE(t.description, '') || ' ' ||
+                           COALESCE(string_agg(u.nickname, ','), '')
+                   ),
+                   t.title,
+                   t.description,
+                   COALESCE(string_agg(u.nickname, ','), ''),
+                   now(),
+                   t.updated_by
+            FROM task t
+                     LEFT JOIN task_assignment ta ON ta.task_id = t.id
+                     LEFT JOIN users u ON u.id = ta.user_id
+            GROUP BY t.id, t.title, t.description, t.updated_by;
+            ]]></sql>
+    </changeSet>
+
+    <!-- ================================================= -->
+    <!-- MySQL -->
+    <!-- ================================================= -->
+    <changeSet id="2026-01-25-002" author="newy" dbms="mysql">
+        <sql><![CDATA[
+            SET SESSION group_concat_max_len = 100000;
+
+            -- =================================================
+            -- 1. users (50,000)
+            -- =================================================
+            INSERT INTO users (nickname)
+            SELECT CONCAT(
+                           ELT((n % 14) + 1,
+                               '김철수', '이영희', '박민수', '최지우',
+                               '정수빈', '한유진', '윤아라', '서준호',
+                               '미스터 박', '초롱한 박상사', '행복한 김대리',
+                               '야근하는 이과장', '커피요정 최주임', '불꽃 리더 정팀장'
+                           ),
+                           '_', n
+                   )
+            FROM (SELECT @u := @u + 1 AS n
+                  FROM information_schema.tables,
+                       (SELECT @u := 0) r
+                  LIMIT 50000) x;
+
+            -- =================================================
+            -- 2. task (100,000) - FK SAFE
+            -- =================================================
+            INSERT INTO task
+                (title, description, status, priority, created_by, updated_by)
+            SELECT CONCAT('대용량 작업 ', n),
+                   CASE
+                       WHEN n % 5 = 0 THEN NULL
+                       WHEN n % 5 = 1 THEN '짧은 설명'
+                       ELSE RPAD('성능 테스트용 긴 설명 ', (n % 20 + 5) * 30, ' 설명')
+                       END,
+                   IF(n % 3 = 0, 'DONE', IF(n % 3 = 1, 'IN_PROGRESS', 'WAITING')),
+                   IF(n % 2 = 0, 'HIGH', 'MEDIUM'),
+                   u.id,
+                   u.id
+            FROM (SELECT @t := @t + 1 AS n
+                  FROM information_schema.tables,
+                       (SELECT @t := 0) r
+                  LIMIT 100000) x
+                     JOIN users u
+                          ON u.id = (SELECT id
+                                     FROM users
+                                     ORDER BY id
+                                     LIMIT 1
+                                     OFFSET (x.n % (SELECT COUNT(*) FROM users)));
+
+            -- =================================================
+            -- 3. task_assignment (FK SAFE)
+            -- =================================================
+            INSERT INTO task_assignment (task_id, user_id, created_by)
+            SELECT t.id,
+                   u.id,
+                   creator.id
+            FROM task t
+                     JOIN users u
+                          ON u.id = (SELECT id
+                                     FROM users
+                                     ORDER BY id
+                                     LIMIT 1
+                                     OFFSET (t.id % (SELECT COUNT(*) FROM users)))
+                     JOIN users creator
+                          ON creator.id = (SELECT id
+                                           FROM users
+                                           ORDER BY id
+                                           LIMIT 1
+                                           OFFSET ((t.id + 7) % (SELECT COUNT(*) FROM users)))
+            WHERE t.id % 10 <> 0;
+
+            -- =================================================
+            -- 4. task_full_text_search
+            -- =================================================
+            INSERT INTO task_full_text_search
+            (task_id, search_content, title_raw, description_raw, assignees_raw, updated_by)
+            SELECT t.id,
+                   CONCAT(
+                           t.title, ' ',
+                           IFNULL(t.description, ''), ' ',
+                           IFNULL(GROUP_CONCAT(u.nickname SEPARATOR ','), '')
+                   ),
+                   t.title,
+                   t.description,
+                   GROUP_CONCAT(u.nickname SEPARATOR ','),
+                   t.updated_by
+            FROM task t
+                     LEFT JOIN task_assignment ta ON ta.task_id = t.id
+                     LEFT JOIN users u ON u.id = ta.user_id
+            GROUP BY t.id;
+            ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

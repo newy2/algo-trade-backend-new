@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
+    <property name="currentTable" value="notification_outbox" global="false"/>
+    <property name="currentTableComment" value="알림 전송 대기열" global="false"/>
+
+    <property name="referenceTable" value="users" global="false"/>
+    <property name="referenceTable_Comment" value="사용자" global="false"/>
+    <property name="referenceTable_Id" value="user_id" global="false"/>
+
+    <changeSet id="2026-01-29-001" author="newy">
+        <preConditions onFail="CONTINUE">
+            <tableExists tableName="${referenceTable}"/>
+        </preConditions>
+
+        <createTable tableName="${currentTable}" remarks="${currentTableComment}">
+            <!-- PK, FK -->
+            <column name="id" type="BIGINT" autoIncrement="true" remarks="${currentTableComment} ID">
+                <constraints primaryKey="true" primaryKeyName="pk_${currentTable}"/>
+            </column>
+            <column name="${referenceTable_Id}" type="BIGINT" remarks="${referenceTable_Comment} ID">
+                <constraints
+                        referencedTableName="${referenceTable}"
+                        referencedColumnNames="id"
+                        foreignKeyName="fk_${currentTable}__${referenceTable}"
+                        deleteCascade="true"
+                        nullable="false"
+                />
+            </column>
+
+            <!-- 일반 필드 -->
+            <column name="channel_type" type="VARCHAR(20)" remarks="전송 채널(EMAIL, SLACK, APP 등)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="destination" type="VARCHAR(255)" remarks="수신처(이메일주소 또는 웹훅 URL)"/>
+            <column name="message" type="TEXT" remarks="알림 메시지">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_key" type="VARCHAR(100)" remarks="중복 발송 방지 키 (예: DEADLINE_TASKID_USERID)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="READY" remarks="READY, SENT, FAIL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="retry_count" type="INT" defaultValueNumeric="0" remarks="재전송 횟수">
+                <constraints nullable="false"/>
+            </column>
+            <column name="processed_at" type="${dateTimeType}" remarks="처리일시"/>
+
+            <!-- 생성/변경 일시 -->
+            <column name="created_at" type="${dateTimeType}" defaultValueDate="${defaultDateTimeValue}" remarks="생성일시">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+                tableName="notification_outbox"
+                columnNames="event_key"
+                constraintName="uk_outbox_event_key"/>
+
+        <createIndex tableName="notification_outbox" indexName="idx_outbox_status_created">
+            <column name="status"/>
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="2026-01-29-002" author="newy">
+        <sql>
+            ALTER TABLE ${currentTable}
+                ADD CONSTRAINT chk_${currentTable}_status CHECK (status IN ('READY', 'SENT', 'FAIL', 'LOG'));
+        </sql>
+    </changeSet>
+</databaseChangeLog>

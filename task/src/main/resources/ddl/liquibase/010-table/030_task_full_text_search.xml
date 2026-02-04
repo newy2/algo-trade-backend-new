@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
+    <property name="currentTable" value="task_full_text_search" global="false"/>
+    <property name="currentTableComment" value="작업 전문 검색" global="false"/>
+
+    <property name="referenceTable" value="task" global="false"/>
+    <property name="referenceTableComment" value="작업" global="false"/>
+
+    <property name="pgNgramType" value="pg_bigm" global="false" dbms="postgresql" context="prod"/>
+    <property name="pgNgramOption" value="gin_bigm_ops" global="false" dbms="postgresql" context="prod"/>
+    <property name="pgNgramType" value="pg_trgm" global="false" dbms="postgresql" context="test"/>
+    <property name="pgNgramOption" value="gin_trgm_ops" global="false" dbms="postgresql" context="test"/>
+
+    <changeSet id="2026-01-25-001" author="newy">
+        <preConditions onFail="CONTINUE">
+            <tableExists tableName="${referenceTable}"/>
+        </preConditions>
+
+        <createTable tableName="${currentTable}" remarks="${currentTableComment}">
+            <!-- PK, FK -->
+            <column name="task_id" type="BIGINT" remarks="${referenceTableComment} ID">
+                <constraints
+                        primaryKey="true"
+                        primaryKeyName="pk_${currentTable}"
+                        referencedTableName="${referenceTable}"
+                        referencedColumnNames="id"
+                        foreignKeyName="fk_${currentTable}__${referenceTable}"
+                        deleteCascade="true"
+                        nullable="false"
+                />
+            </column>
+
+            <!-- 일반 필드 -->
+            <column name="search_content" type="TEXT" remarks="전체 검색 내용">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title_raw" type="VARCHAR(255)" remarks="제목 원본">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description_raw" type="TEXT" remarks="설명 원본"/>
+            <column name="assignees_raw" type="TEXT" remarks="작업 할당자 목록 원본"/>
+            <!-- 생성/변경 일시 -->
+            <column name="updated_at" type="${dateTimeType}" defaultValueDate="${defaultDateTimeValue}" remarks="생성일시">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="BIGINT" remarks="변경자 ID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2026-01-25-002" author="newy">
+        <sql dbms="mysql">
+            ALTER TABLE ${currentTable}
+                ADD FULLTEXT INDEX idx_full_text_search (search_content) WITH PARSER ngram;
+        </sql>
+        <sql dbms="postgresql">
+            CREATE
+            EXTENSION IF NOT EXISTS
+            ${pgNgramType};
+            CREATE INDEX idx_gin_search ON ${currentTable} USING gin(search_content ${pgNgramOption});
+        </sql>
+    </changeSet>
+</databaseChangeLog>
