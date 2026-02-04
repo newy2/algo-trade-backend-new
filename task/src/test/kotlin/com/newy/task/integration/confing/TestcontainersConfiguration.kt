@@ -1,25 +1,26 @@
-package com.newy.task
+package com.newy.task.integration.confing
 
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Profile
 import org.testcontainers.mysql.MySQLContainer
 import org.testcontainers.postgresql.PostgreSQLContainer
-import org.testcontainers.utility.DockerImageName
 
 @TestConfiguration(proxyBeanMethods = false)
 class TestcontainersConfiguration {
 
     @Bean
     @ServiceConnection
-    fun mysqlContainer(): MySQLContainer {
-        return MySQLContainer(DockerImageName.parse("mysql:latest"))
+    @Profile("postgresql")
+    fun postgresContainer(): PostgreSQLContainer {
+        return PostgreSQLContainer("postgres:16-alpine")
     }
 
     @Bean
     @ServiceConnection
-    fun postgresContainer(): PostgreSQLContainer {
-        return PostgreSQLContainer(DockerImageName.parse("postgres:latest"))
+    @Profile("mysql")
+    fun mysqlContainer(): MySQLContainer {
+        return MySQLContainer("mysql:8.0")
     }
-
 }
