@@ -94,7 +94,7 @@ cd task && ./gradlew bootRun
 
 - 단위 테스트로 기능을 검증한다
 - 테스트는 InPortModel 이 DomainModel 로 변환하는 것을 확인해야 한다  
-  https://github.com/0newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/port/in/model/CreateTaskCommandTest.kt#L35-L44
+  https://github.com/newy2/algo-trade-backend-new/blob/d984cf5ff931501438642f70973e1c3900ddc07f/task/src/test/kotlin/com/newy/task/unit/task/port/in/model/CreateTaskCommandTest.kt#L35-L44
 - 테스트는 InPortModel 의 입력 데이터 유효성 검증을 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/port/in/model/CreateTaskCommandTest.kt#L47-L53
 
