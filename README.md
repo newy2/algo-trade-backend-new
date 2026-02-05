@@ -68,11 +68,6 @@ cd task && ./gradlew bootRun
 
 헥사고날 아키텍처의 컴포넌트는 아래와 같은 테스트 전략을 사용한다.
 
-### test 폴더의 패키지 설명
-
-- `com.newy.task.integration`: Spring Container, RDB 등을 사용하는 통합 테스트 코드를 작성한다
-- `com.newy.task.unit`: 외부 프로세스와 통신이 필요 없는 유닛 테스트 코드를 작성한다
-
 ### 인커밍 어댑터 (계층형 아키텍처의 Controller)
 
 - 단위 테스트로 기능을 검증한다
