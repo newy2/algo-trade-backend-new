@@ -76,9 +76,9 @@ cd task && ./gradlew bootRun
 ### 인커밍 어댑터 (계층형 아키텍처의 Controller)
 
 - 단위 테스트로 기능을 검증한다
-- 테스트는 InPort 로 전달하는 파라미터를 확인해야 한다  
+- 테스트는 인커밍 어댑터가 InPort 로 전달하는 파라미터를 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/adapter/in/web/TaskControllerTest.kt#L100-L105
-- 테스트는 인커밍 어댑터의 전달받은 응답 데이터를 확인해야 한다  
+- 테스트는 인커밍 어댑터의 응답 데이터를 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/adapter/in/web/TaskControllerTest.kt#L107-L110
 - 테스트는 인커밍 어댑터의 Spring Annotation 사용 여부를 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/adapter/in/web/TaskControllerTest.kt#L229-L244
@@ -86,11 +86,11 @@ cd task && ./gradlew bootRun
 ### 유스케이스 (계층형 아키텍처의 Service)
 
 - 단위 테스트로 기능을 검증한다
-- 테스트는 비즈니스 규칙을 검증해야 한다  
+- 테스트는 유스케이스의 비즈니스 규칙을 검증해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/service/TaskServiceTest.kt#L127-L139
-- 테스트는 OutPort 로 전달하는 파라미터를 확인해야 한다  
+- 테스트는 유스케이스가 OutPort 로 전달하는 파라미터를 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/service/TaskServiceTest.kt#L79-L84
-- (필요한 경우) 테스트는 OutPort 호출 순서를 확인한다  
+- (필요한 경우) 테스트는 유스케이스가 여러 OutPort 를 호출하는 순서를 확인한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/service/TaskServiceTest.kt#L91-L99
 - 테스트는 유스케이스의 Spring Annotation 사용 여부를 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/service/TaskServiceTest.kt#L315-L325
@@ -98,15 +98,15 @@ cd task && ./gradlew bootRun
 ### 유스케이스의 입력 파라미터 (InPortModel 로 표기)
 
 - 단위 테스트로 기능을 검증한다
-- 테스트는 InPortModel 을 DomainModel 로 변환을 확인해야 한다  
+- 테스트는 InPortModel 이 DomainModel 로 변환하는 것을 확인해야 한다  
   https://github.com/0newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/port/in/model/CreateTaskCommandTest.kt#L35-L44
-- 테스트는 입력 데이터의 유효성 검증을 확인해야 한다  
+- 테스트는 InPortModel 의 입력 데이터 유효성 검증을 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/port/in/model/CreateTaskCommandTest.kt#L47-L53
 
 ### 아웃고잉 어댑터 (계층형 아키텍처의 Repository)
 
 - 통합 테스트로 기능을 검증한다
-- 테스트는 DB에 데이터가 저장/조회 되는지 확인해야 한다  
+- 테스트는 아웃고잉 어댑터가 DB의 데이터를 저장/조회 하는 것을 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/integration/task/out/persistence/TaskAdapterTest.kt#L109-L128
 
 ---
