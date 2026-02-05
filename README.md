@@ -62,7 +62,6 @@ cd task && ./gradlew bootRun
     - `port.in.model`: 인커밍 포트 입력 모델 구현. 입력 데이터의 유효성 검증 담당
     - `port.out`: 아웃고잉 포트 선언. `service`에서 호출하고, `adapter.out`에서 구현한다
     - `service`: 유스케이스 구현 (계층형 아키텍처의 Service 컴포넌트)
-    -
 
 ## 테스트 전략
 
