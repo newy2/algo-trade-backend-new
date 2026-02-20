@@ -1,15 +1,14 @@
 package com.newy.task.task.adapter.out.persistence.querydsl
 
-import com.newy.task.task.adapter.out.persistence.jpa.model.QTaskFullTextSearchJpaEntity
-import com.newy.task.task.adapter.out.persistence.jpa.model.QTaskJpaEntity
-import com.newy.task.task.adapter.out.persistence.jpa.model.TaskJpaEntity
+import com.newy.task.spring.database.DatabaseTypeProvider
+import com.newy.task.task.adapter.out.persistence.jpa.model.*
 import com.newy.task.task.adapter.out.persistence.querydsl.model.TaskSearchCondition
 import com.newy.task.task.domain.TaskPriority
 import com.newy.task.task.domain.TaskStatus
 import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.core.types.dsl.Expressions
+import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -21,23 +20,24 @@ import java.time.OffsetDateTime
 @Repository
 class TaskFullTextSearchQuerydslRepository(
     private val queryFactory: JPAQueryFactory,
-    @Value("\${spring.datasource.driver-class-name}")
-    private val driverClassName: String
+    private val databaseTypeProvider: DatabaseTypeProvider,
 ) {
     private val task = QTaskJpaEntity.taskJpaEntity
     private val search = QTaskFullTextSearchJpaEntity.taskFullTextSearchJpaEntity
+    private val assignment = QTaskAssignmentJpaEntity.taskAssignmentJpaEntity
+    private val user = QUserJpaEntity.userJpaEntity
 
     fun searchTasks(condition: TaskSearchCondition, pageable: Pageable): Page<TaskJpaEntity> {
         val fixedPageable = PageRequest.of(pageable.pageNumber, pageable.pageSize, Sort.Direction.DESC, "id")
 
-        val content = selectFromTaskWithSearch(condition)
+        val content = contentSelectFrom(condition)
             .select(task)
             .orderBy(task.id.desc())
             .offset(fixedPageable.offset)
             .limit(fixedPageable.pageSize.toLong())
             .fetch()
 
-        val countQuery = selectFromTaskWithSearch(condition)
+        val countQuery = countSelectFrom(condition)
             .select(task.count())
 
         return PageableExecutionUtils.getPage(content, fixedPageable) {
@@ -45,7 +45,13 @@ class TaskFullTextSearchQuerydslRepository(
         }
     }
 
-    private fun selectFromTaskWithSearch(condition: TaskSearchCondition) =
+    private fun contentSelectFrom(condition: TaskSearchCondition): JPAQuery<*> =
+        countSelectFrom(condition)
+            .distinct()
+            .leftJoin(task.assignments, assignment).fetchJoin()
+            .leftJoin(assignment.user, user).fetchJoin()
+
+    private fun countSelectFrom(condition: TaskSearchCondition): JPAQuery<*> =
         queryFactory
             .from(task)
             .innerJoin(search).on(task.id.eq(search.taskId))
@@ -62,8 +68,7 @@ class TaskFullTextSearchQuerydslRepository(
             return null
         }
 
-        return if (driverClassName.contains("mysql", ignoreCase = true)) {
-            // TODO fix mysql (SQL 과 API 는 검색 결과가 나오는데, 통합 테스트에서 검색 결과가 나오지 않음)
+        return if (databaseTypeProvider.isMySql()) {
             Expressions.numberTemplate(
                 Double::class.javaObjectType,
                 "function('match_against', {0}, {1})",

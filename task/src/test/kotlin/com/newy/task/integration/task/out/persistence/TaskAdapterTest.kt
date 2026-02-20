@@ -1,7 +1,9 @@
 package com.newy.task.integration.task.out.persistence
 
 import com.newy.task.common.error.ResourceConflictException
+import com.newy.task.integration.helper.BaseFullTextSearchTest
 import com.newy.task.integration.helper.DataJpaTestHelper
+import com.newy.task.spring.database.DatabaseTypeProvider
 import com.newy.task.task.adapter.out.persistence.TaskAdapter
 import com.newy.task.task.adapter.out.persistence.jpa.TaskAssignmentJpaRepository
 import com.newy.task.task.adapter.out.persistence.jpa.TaskJpaRepository
@@ -349,14 +351,21 @@ class UpdateTaskAdapterTest(
                 ).merge(taskAdapter.get(savedTaskId)!!),
             )
             entityManager.flush()
-            
+
         }
     }
 }
 
 abstract class BaseTaskAdapterTest(
     protected val userJpaRepository: UserJpaRepository,
-) {
+) : BaseFullTextSearchTest {
+    @Autowired
+    override lateinit var databaseTypeProvider: DatabaseTypeProvider
+
+    override fun cleanupForMySql() {
+        userJpaRepository.deleteAll()
+    }
+
     protected fun saveUser(user: UserJpaEntity): UserJpaEntity {
         userJpaRepository.save(user)
         return user

@@ -3,6 +3,8 @@ package com.newy.task.integration.task.out.persistence
 import com.newy.task.integration.helper.DataJpaTestHelper
 import com.newy.task.task.adapter.out.persistence.SearchTaskAdapter
 import com.newy.task.task.adapter.out.persistence.TaskAdapter
+import com.newy.task.task.adapter.out.persistence.jpa.TaskFullTextSearchJpaRepository
+import com.newy.task.task.adapter.out.persistence.jpa.TaskJpaRepository
 import com.newy.task.task.adapter.out.persistence.jpa.UserJpaRepository
 import com.newy.task.task.adapter.out.persistence.jpa.model.UserJpaEntity
 import com.newy.task.task.domain.CreateTask
@@ -21,8 +23,10 @@ import java.time.OffsetDateTime
 @DisplayName("Task 검색 테스트")
 class SearchTaskAdapterTest(
     @Autowired userJpaRepository: UserJpaRepository,
-    @Autowired val taskAdapter: TaskAdapter,
-    @Autowired val searchTaskAdapter: SearchTaskAdapter,
+    @Autowired private val taskAdapter: TaskAdapter,
+    @Autowired private val searchTaskAdapter: SearchTaskAdapter,
+    @Autowired private val taskJpaRepository: TaskJpaRepository,
+    @Autowired private val taskFullTextSearchJpaRepository: TaskFullTextSearchJpaRepository,
 ) : BaseTaskAdapterTest(userJpaRepository) {
     private val createTask = CreateTask(
         title = "abc",
@@ -61,14 +65,15 @@ class SearchTaskAdapterTest(
         createTaskForSearch(createTask.copy(currentUserId = user1.id, title = "신발 주문하기"))
         createTaskForSearch(createTask.copy(currentUserId = user1.id, title = "비타민 먹기"))
 
-        val result = searchTaskAdapter.search(searchTask.copy(keyword = "작업"))
+        fullTextSearchTestTemplate {
+            val result = searchTaskAdapter.search(searchTask.copy(keyword = "작업"))
 
-        // TODO fix mysql
-        assertEquals(2, result.totalElements)
-        assertEquals(1, result.totalPages)
-        assertEquals(2, result.content.size)
-        assertEquals("알림 전송 작업", result.content[0].title)
-        assertEquals("PG 연동 작업", result.content[1].title)
+            assertEquals(2, result.totalElements)
+            assertEquals(1, result.totalPages)
+            assertEquals(2, result.content.size)
+            assertEquals("알림 전송 작업", result.content[0].title)
+            assertEquals("PG 연동 작업", result.content[1].title)
+        }
     }
 
     @Test
@@ -80,14 +85,15 @@ class SearchTaskAdapterTest(
         createTaskForSearch(createTask.copy(currentUserId = user1.id, description = "신발 주문하기"))
         createTaskForSearch(createTask.copy(currentUserId = user1.id, description = "비타민 먹기"))
 
-        val result = searchTaskAdapter.search(searchTask.copy(keyword = "작업"))
+        fullTextSearchTestTemplate {
+            val result = searchTaskAdapter.search(searchTask.copy(keyword = "작업"))
 
-        // TODO fix mysql
-        assertEquals(2, result.totalElements)
-        assertEquals(1, result.totalPages)
-        assertEquals(2, result.content.size)
-        assertEquals("알림 전송 작업", result.content[0].description)
-        assertEquals("PG 연동 작업", result.content[1].description)
+            assertEquals(2, result.totalElements)
+            assertEquals(1, result.totalPages)
+            assertEquals(2, result.content.size)
+            assertEquals("알림 전송 작업", result.content[0].description)
+            assertEquals("PG 연동 작업", result.content[1].description)
+        }
     }
 
     @Test
@@ -102,14 +108,15 @@ class SearchTaskAdapterTest(
         createTaskForSearch(createTask.copy(currentUserId = c, title = "C", assigneeIds = listOf(user3.id)))
         createTaskForSearch(createTask.copy(currentUserId = c, title = "D", assigneeIds = listOf(user1.id, user3.id)))
 
-        val result = searchTaskAdapter.search(searchTask.copy(keyword = "길동"))
+        fullTextSearchTestTemplate {
+            val result = searchTaskAdapter.search(searchTask.copy(keyword = "길동"))
 
-        // TODO fix mysql
-        assertEquals(3, result.totalElements)
-        assertEquals(2, result.totalPages)
-        assertEquals(2, result.content.size)
-        assertEquals("D", result.content[0].title)
-        assertEquals("B", result.content[1].title)
+            assertEquals(3, result.totalElements)
+            assertEquals(2, result.totalPages)
+            assertEquals(2, result.content.size)
+            assertEquals("D", result.content[0].title)
+            assertEquals("B", result.content[1].title)
+        }
     }
 
     @Test
@@ -121,16 +128,23 @@ class SearchTaskAdapterTest(
         createTaskForSearch(createTask.copy(currentUserId = user1.id, title = "신발 주문하기", status = IN_PROGRESS))
         createTaskForSearch(createTask.copy(currentUserId = user1.id, title = "비타민 먹기", status = IN_PROGRESS))
 
-        val result = searchTaskAdapter.search(searchTask.copy(keyword = "작업", status = IN_PROGRESS))
+        fullTextSearchTestTemplate {
+            val result = searchTaskAdapter.search(searchTask.copy(keyword = "작업", status = IN_PROGRESS))
 
-        // TODO fix mysql
-        assertEquals(1, result.totalElements)
-        assertEquals(1, result.totalPages)
-        assertEquals(1, result.content.size)
-        assertEquals("알림 전송 작업", result.content[0].title)
+            assertEquals(1, result.totalElements)
+            assertEquals(1, result.totalPages)
+            assertEquals(1, result.content.size)
+            assertEquals("알림 전송 작업", result.content[0].title)
+        }
     }
 
     private fun createTaskForSearch(createTask: CreateTask) {
         searchTaskAdapter.index(taskAdapter.create(createTask))
+    }
+
+    override fun cleanupForMySql() {
+        super.cleanupForMySql()
+        taskJpaRepository.deleteAll()
+        taskFullTextSearchJpaRepository.deleteAll()
     }
 }
