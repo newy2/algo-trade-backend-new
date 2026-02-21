@@ -75,9 +75,9 @@ cd task && ./gradlew bootRun
 
 - 단위 테스트로 기능을 검증한다
 - 테스트는 인커밍 어댑터가 InPort 로 전달하는 파라미터를 확인해야 한다  
-  https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/adapter/in/web/TaskControllerTest.kt#L100-L105
+  https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/adapter/in/web/TaskControllerTest.kt#L68-L78
 - 테스트는 인커밍 어댑터의 응답 데이터를 확인해야 한다  
-  https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/adapter/in/web/TaskControllerTest.kt#L107-L110
+  https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/adapter/in/web/TaskControllerTest.kt#L80-L92
 - 테스트는 인커밍 어댑터의 Spring Annotation 사용 여부를 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/adapter/in/web/TaskControllerTest.kt#L229-L244
 
