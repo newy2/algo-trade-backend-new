@@ -43,7 +43,7 @@ cd task && ./gradlew bootRun
 해당 프로젝트는 헥사고날 아키텍처를 적용한다.
 
 ### main 폴더의 패키지 설명
-
+<img src="doc/mapping_strategy.png" />  
 
 - `com.newy.task.common`: 공통으로 사용하는 코드 구현
 - `com.newy.task.spring`: Spring 프레임워크에서 사용하는 코드 구현
