@@ -69,11 +69,10 @@ cd task && ./gradlew bootRun
 
 헥사고날 아키텍처의 컴포넌트는 아래와 같은 테스트 전략을 사용한다.
 
-### 인커밍 어댑터 (계층형 아키텍처의 Controller)
+### 인커밍 어댑터 (계층형 아키텍처의 Controller) - 단위 테스트
 
 <img src="doc/mapping_strategy_01.png" />  
 
-- 단위 테스트로 기능을 검증한다
 - 테스트는 인커밍 어댑터가 InPort 로 전달하는 파라미터를 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/adapter/in/web/TaskControllerTest.kt#L68-L78
 - 테스트는 인커밍 어댑터의 응답 데이터를 확인해야 한다  
@@ -81,11 +80,10 @@ cd task && ./gradlew bootRun
 - 테스트는 인커밍 어댑터의 Spring Annotation 사용 여부를 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/adapter/in/web/TaskControllerTest.kt#L229-L244
 
-### 유스케이스 (계층형 아키텍처의 Service)
+### 유스케이스 (계층형 아키텍처의 Service) - 단위 테스트
 
 <img src="doc/mapping_strategy_02.png" />
 
-- 단위 테스트로 기능을 검증한다
 - 테스트는 유스케이스의 비즈니스 규칙을 검증해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/service/TaskServiceTest.kt#L127-L139
 - 테스트는 유스케이스가 OutPort 로 전달하는 파라미터를 확인해야 한다  
@@ -95,21 +93,19 @@ cd task && ./gradlew bootRun
 - 테스트는 유스케이스의 Spring Annotation 사용 여부를 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/service/TaskServiceTest.kt#L315-L325
 
-### 유스케이스의 입력 파라미터 (InPortModel 로 표기)
+### 유스케이스의 입력 파라미터 (InPortModel 로 표기) - 단위 테스트
 
 <img src="doc/mapping_strategy_03.png" />
 
-- 단위 테스트로 기능을 검증한다
 - 테스트는 InPortModel 이 DomainModel 로 변환하는 것을 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/d984cf5ff931501438642f70973e1c3900ddc07f/task/src/test/kotlin/com/newy/task/unit/task/port/in/model/CreateTaskCommandTest.kt#L35-L44
 - 테스트는 InPortModel 의 입력 데이터 유효성 검증을 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/port/in/model/CreateTaskCommandTest.kt#L47-L53
 
-### 아웃고잉 어댑터 (계층형 아키텍처의 Repository)
+### 아웃고잉 어댑터 (계층형 아키텍처의 Repository) - 통합 테스트
 
 <img src="doc/mapping_strategy_04.png" />
 
-- 통합 테스트로 기능을 검증한다
 - 테스트는 아웃고잉 어댑터가 DB의 데이터를 저장/조회 하는 것을 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/integration/task/out/persistence/TaskAdapterTest.kt#L109-L128
 
