@@ -60,9 +60,9 @@ cd task && ./gradlew bootRun
     - `adapter.out.persistence.querydsl`: Querydsl Repository 구현
     - `adapter.out.persistence.querydsl.model`: Querydsl DTO 구현
     - `domain`: 유스케이스에서 사용하는 데이터 모델 구현
-    - `port.in`: 인커밍 포트 선언. `adapter.in`에서 호출하고, `service`에서 구현한다.
+    - `port.in`: 인커밍 포트 선언
     - `port.in.model`: 인커밍 포트 입력 모델 구현. 입력 데이터의 유효성 검증 담당
-    - `port.out`: 아웃고잉 포트 선언. `service`에서 호출하고, `adapter.out`에서 구현한다
+    - `port.out`: 아웃고잉 포트 선언
     - `service`: 유스케이스 구현 (계층형 아키텍처의 Service 컴포넌트)
 
 ## 테스트 전략
