@@ -44,7 +44,6 @@ cd task && ./gradlew bootRun
 
 ### main 폴더의 패키지 설명
 
-<img src="doc/mapping_strategy.png" />
 
 - `com.newy.task.common`: 공통으로 사용하는 코드 구현
 - `com.newy.task.spring`: Spring 프레임워크에서 사용하는 코드 구현
