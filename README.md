@@ -48,7 +48,7 @@ cd task && ./gradlew bootRun
 
 - `com.newy.task.common`: 공통으로 사용하는 코드 구현
 - `com.newy.task.spring`: Spring 프레임워크에서 사용하는 코드 구현
-- `도메인 이름 패키지` (예: `com.newy.task.task` or `com.newy.task.notification`)
+- `도메인 이름 패키지` (예: `com.newy.task.task`)
     - `adapter.in`: 인커밍 어댑터 구현
     - `adapter.in.web`: 웹 어댑터 구현 (계층형 아키텍처의 Controller 컴포넌트)
     - `adapter.in.web.model`: 웹 요청/응답 DTO 구현
