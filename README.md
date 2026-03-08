@@ -40,7 +40,8 @@ cd task && ./gradlew bootRun
 
 ## 구현 전략
 
-해당 프로젝트는 헥사고날 아키텍처를 적용한다.
+해당 프로젝트는 헥사고날 아키텍처를 적용한다.  
+아래의 패키지 구조와 경계 간 매핑 전략은 책 <[만들면서 배우는 클린 아키텍처](https://product.kyobobook.co.kr/detail/S000001766486)>의 내용을 참고한다.
 
 ### main 폴더의 패키지 설명
 
@@ -93,7 +94,7 @@ cd task && ./gradlew bootRun
 - 테스트는 유스케이스의 Spring Annotation 사용 여부를 확인해야 한다  
   https://github.com/newy2/algo-trade-backend-new/blob/803a0960612f66874355c1b29dba1edea007498b/task/src/test/kotlin/com/newy/task/unit/task/service/TaskServiceTest.kt#L315-L325
 
-### 유스케이스의 입력 파라미터 (InPortModel 로 표기) - 단위 테스트
+### 인커밍 포트 모델 (InPortModel 로 표기) - 단위 테스트
 
 <img src="doc/mapping_strategy_03.png" />
 
