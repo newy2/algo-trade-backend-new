@@ -1,4 +1,6 @@
-Always follow the instructions in plan.md. When I say "go", find the next unmarked test in plan.md, implement the test,
+Always follow the instructions in ARCHITECTURE.md.
+
+Always follow the instructions in plan.md. When I say "해봐", find the next unmarked test in plan.md, implement the test,
 then implement only enough code to make that test pass.
 
 # ROLE AND EXPERTISE
