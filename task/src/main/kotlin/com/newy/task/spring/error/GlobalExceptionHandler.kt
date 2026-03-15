@@ -111,9 +111,21 @@ class GlobalExceptionHandler {
             .body(ErrorResponse(message = e.message ?: "데이터 충돌이 발생했습니다."))
     }
 
-    @ExceptionHandler(Exception::class)
-    private fun defaultClientErrorMessage(exception: Exception) =
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgumentException(exception: IllegalArgumentException) =
         HttpStatus.BAD_REQUEST.let { httpStatus ->
+            ResponseEntity
+                .status(httpStatus)
+                .body(
+                    ErrorResponse(
+                        message = exception.message ?: httpStatus.reasonPhrase,
+                    )
+                )
+        }
+
+    @ExceptionHandler(Exception::class)
+    fun handleInternalServerError(exception: Exception) =
+        HttpStatus.INTERNAL_SERVER_ERROR.let { httpStatus ->
             ResponseEntity
                 .status(httpStatus)
                 .body(

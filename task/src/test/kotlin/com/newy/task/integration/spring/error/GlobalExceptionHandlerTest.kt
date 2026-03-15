@@ -63,6 +63,11 @@ class TestController {
         // 어댑터에서 변환되어 던져질 커스텀 예외 시뮬레이션
         throw ResourceConflictException("해당 리소스가 이미 다른 사용자에 의해 수정되었습니다. 다시 시도해주세요.")
     }
+
+    @GetMapping("/test/InternalServerError")
+    fun throwInternalServerError() {
+        throw IllegalStateException("서버 내부 오류입니다.")
+    }
 }
 
 
@@ -228,5 +233,16 @@ class GlobalExceptionHandlerTest(
             .expectStatus().isEqualTo(HttpStatus.CONFLICT) // 409
             .expectBody()
             .jsonPath("$.message").isEqualTo("해당 리소스가 이미 다른 사용자에 의해 수정되었습니다. 다시 시도해주세요.")
+    }
+
+    @Test
+    @DisplayName("처리되지 않은 서버 예외는 500 에러와 메시지를 반환한다")
+    fun handleInternalServerError() {
+        client.get()
+            .uri("/test/InternalServerError")
+            .exchange()
+            .expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+            .expectBody()
+            .jsonPath("$.message").isEqualTo("서버 내부 오류입니다.")
     }
 }
