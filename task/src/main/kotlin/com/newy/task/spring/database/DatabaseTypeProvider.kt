@@ -12,14 +12,12 @@ enum class DatabaseType {
 class DatabaseTypeProvider(
     dataSource: DataSource
 ) {
-    lateinit var databaseType: DatabaseType
-
-    init {
-        val meta = dataSource.connection.metaData
-        databaseType = when {
-            meta.databaseProductName.contains("MySQL", true) -> DatabaseType.MYSQL
-            meta.databaseProductName.contains("PostgreSQL", true) -> DatabaseType.POSTGRESQL
-            else -> throw IllegalStateException("Unknown DatabaseType ${meta.databaseProductName}")
+    var databaseType: DatabaseType = dataSource.connection.use { connection ->
+        val productName = connection.metaData.databaseProductName
+        when {
+            productName.contains("MySQL", true) -> DatabaseType.MYSQL
+            productName.contains("PostgreSQL", true) -> DatabaseType.POSTGRESQL
+            else -> throw IllegalStateException("Unknown DatabaseType $productName")
         }
     }
 
