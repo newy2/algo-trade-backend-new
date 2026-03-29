@@ -15,6 +15,7 @@ import com.newy.task.task.adapter.out.persistence.jpa.UserJpaRepository
 import com.newy.task.task.adapter.out.persistence.jpa.model.UserJpaEntity
 import com.newy.task.task.domain.CreateTask
 import com.newy.task.task.domain.TaskStatus
+import org.hibernate.SessionFactory
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -114,6 +115,7 @@ class GetDeadlineTaskAdapterTest(
     @Autowired val notificationAdapter: NotificationAdapter,
     @Autowired val taskAdapter: TaskAdapter,
     @Autowired userNotificationConfigJpaRepository: UserNotificationConfigJpaRepository,
+    @Autowired val entityManager: TestEntityManager,
 ) : BaseNotificationAdapterTest(userNotificationConfigJpaRepository, userJpaRepository) {
     private val createTask = CreateTask(
         currentUserId = Long.MAX_VALUE,
@@ -151,5 +153,33 @@ class GetDeadlineTaskAdapterTest(
         taskAdapter.create(createTask.copy(currentUserId = user.id, endAt = null))
 
         assertEquals(0, notificationAdapter.getDeadlineTasks(deadline = endAt).size)
+    }
+
+    @Test
+    fun `마감 알림 조회는 assignee 정보까지 한 번에 조회한다`() {
+        val creator = saveUser(UserJpaEntity(nickname = "생성자"))
+        val assignee = saveUser(UserJpaEntity(nickname = "담당자"))
+        val endAt = OffsetDateTime.parse("2026-01-10T00:00:00Z")
+
+        taskAdapter.create(
+            createTask.copy(
+                currentUserId = creator.id,
+                endAt = endAt,
+                assigneeIds = listOf(assignee.id),
+            )
+        )
+
+        entityManager.flush()
+        entityManager.clear()
+
+        val sessionFactory = entityManager.entityManager.entityManagerFactory.unwrap(SessionFactory::class.java)
+        sessionFactory.statistics.isStatisticsEnabled = true
+        sessionFactory.statistics.clear()
+
+        val tasks = notificationAdapter.getDeadlineTasks(deadline = endAt)
+
+        assertEquals(1, tasks.size)
+        assertEquals(listOf("담당자"), tasks.first().assignees.map { it.name })
+        assertEquals(1, sessionFactory.statistics.prepareStatementCount)
     }
 }
