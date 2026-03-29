@@ -19,16 +19,18 @@
 
 ## 프로젝트 구조 요약
 
-- 실제 애플리케이션 코드는 `task` 모듈에 있다.
+- `task` 모듈은 패키지 구조와 구현 스타일을 참고하기 위한 레퍼런스 소스코드다.
 - 루트의 `local-infra`는 로컬 DB 및 컨테이너 실행 구성을 담는다.
 - 루트의 `doc`는 다이어그램과 보조 문서를 담는다.
-- 주요 비즈니스 도메인은 `com.newy.task.<domain>` 아래에 배치한다.
-- 공통 검증과 공통 예외는 `com.newy.task.common`에 둔다.
-- 인증, MVC 설정, DB 감지, 예외 처리 같은 프레임워크 코드는 `com.newy.task.spring`에 둔다.
+- 새 모듈을 만들 때는 `task` 모듈의 패키지 구조를 재사용하되, 모듈명과 최상위 패키지명은 새 구현 목적에 맞게 정한다.
+- 주요 비즈니스 도메인은 `<최상위 패키지>.<domain>` 아래에 배치한다.
+- 공통 검증과 공통 예외는 `<최상위 패키지>.common`에 둔다.
+- 인증, MVC 설정, DB 감지, 예외 처리 같은 프레임워크 코드는 `<최상위 패키지>.spring`에 둔다.
 
 ## 도메인 패키지 기본 구조
 
 기존 도메인을 확장하거나 새 도메인을 만들 때는 아래 구조를 기본으로 유지한다.
+이 구조는 `task` 모듈의 현재 패키지 구성을 기준으로 한 레퍼런스이며, 새 모듈에서도 같은 패턴을 재사용하는 것을 권장한다.
 
 - `adapter.in`
 - `adapter.in.web`
@@ -60,6 +62,8 @@
 - `task/src/main/kotlin/com/newy/task/task/domain/CreateTask.kt`
 - `task/src/main/kotlin/com/newy/task/task/domain/UpdateTask.kt`
 - `task/src/main/kotlin/com/newy/task/notification/domain/Notification.kt`
+
+위 경로는 `task` 모듈 레퍼런스 예시다. 새 모듈에서는 같은 역할의 패키지 구조만 유지하고 실제 경로는 새 모듈 기준으로 잡는다.
 
 ### 2. InPort 와 InPortModel 을 만든다
 
