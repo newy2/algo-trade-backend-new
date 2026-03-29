@@ -44,10 +44,10 @@ class SearchTaskQueryTest {
     }
 
     @Test
-    fun `size 는 0 이상이어야 한다`() {
+    fun `size 는 1 이상이어야 한다`() {
         assertThrows<ConstraintViolationException> { inPortModel.copy(size = -2) }
         assertThrows<ConstraintViolationException> { inPortModel.copy(size = -1) }
-        assertDoesNotThrow { inPortModel.copy(size = 0) }
+        assertThrows<ConstraintViolationException> { inPortModel.copy(size = 0) }
         assertDoesNotThrow { inPortModel.copy(size = 1) }
     }
 

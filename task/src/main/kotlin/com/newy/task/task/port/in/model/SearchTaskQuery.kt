@@ -29,7 +29,7 @@ data class SearchTaskQuery(
     @field:Min(0)
     val page: Int,
 
-    @field:Min(0)
+    @field:Min(1)
     val size: Int,
 ) : SelfValidating() {
     init {

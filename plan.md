@@ -1,18 +1,6 @@
 # 후속 개선 계획
 
-## 1. 검색 API page size 검증 정합성 맞추기
-
-- 문제 요약:
-  검색 요청 모델은 `size=0` 을 허용하지만 실제 검색 어댑터는 `PageRequest.of(page, size)` 를 사용한다.
-  관련 파일은 `task/src/main/kotlin/com/newy/task/task/port/in/model/SearchTaskQuery.kt` 와 `task/src/main/kotlin/com/newy/task/task/adapter/out/persistence/SearchTaskAdapter.kt` 다.
-- 왜 위험한지:
-  API 입력 검증 단계에서는 통과한 요청이 런타임에서 예외를 일으킬 수 있다.
-  클라이언트 입장에서는 허용된 계약처럼 보이는 값이 실제로는 실패하기 때문에 API 신뢰도가 떨어진다.
-- 권장 수정 방향:
-  입력 검증에서 `size >= 1` 을 강제해 런타임 제약과 맞춘다.
-  필요하면 기본 페이지 크기 정책도 함께 문서화하고 테스트 케이스를 보강한다.
-
-## 2. 마감 알림 조회 시 N+1 가능성 점검 및 개선
+## 1. 마감 알림 조회 시 N+1 가능성 점검 및 개선
 
 - 문제 요약:
   마감 임박 Task 조회 후 assignee 목록을 접근하는 과정에서 추가 쿼리가 반복될 가능성이 있다.
